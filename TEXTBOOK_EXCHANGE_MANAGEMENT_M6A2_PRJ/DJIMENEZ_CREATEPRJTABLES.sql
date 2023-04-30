@@ -1,50 +1,72 @@
 
--- Make Sure To Use Your Database
+-- Textbook Exchange Management --
+GO
+	USE VR_jholder7 -- REPLACE WITH PERSONAL DB
 
-CREATE SCHEMA TEM -- Textbook Exchange Management --
 GO
 
-CREATE TABLE TEM.Customers(
-	CustomerID INT IDENTITY(1, 1) PRIMARY KEY,
-	CustomerName VARCHAR(50) NOT NULL,
-	CustomerPhone VARCHAR(15),
-	CustomerStreetAddress VARCHAR(50),
-	CustomerCity VARCHAR(50),
-	CustomerState VARCHAR(50),
-	CustomerZip VARCHAR(5),
-	CustomerCountry VARCHAR(50)
-	)
+	DROP TABLE IF EXISTS TEM.Rentals
+	DROP TABLE IF EXISTS TEM.Courses
+	DROP TABLE IF EXISTS TEM.Customers
+	DROP TABLE IF EXISTS TEM.RentalPeriods
+	DROP TABLE IF EXISTS TEM.Textbooks
+	DROP SCHEMA IF EXISTS TEM
 
-CREATE TABLE TEM.Qualities(
-	QualityID INT IDENTITY(1, 1) PRIMARY KEY,
-	QualityName VARCHAR(50) NOT NULL,
-	QualitySpecDescription VARCHAR(50) NOT NULL
-	)
+GO
 
-CREATE TABLE TEM.Textbooks(
-	TextbookID INT IDENTITY(1, 1) PRIMARY KEY,
-	ISBN INT NOT NULL,
-	Title VARCHAR(50) NOT NULL,
-	Quality_FK INT NOT NULL REFERENCES TEM.QUALITIES(QualityID),
-	ListingPrice MONEY NOT NULL DEFAULT 0,
-	TextbookStatus BIT NOT NULL DEFAULT 0,
-	)
+	CREATE SCHEMA TEM
 
-CREATE TABLE TEM.Exchanges(
-	ExchangeID INT IDENTITY(1, 1) PRIMARY KEY,
-	CustomerID_FK INT NOT NULL REFERENCES TEM.Customers(CustomerID),
-	GainedTextbookID_FK INT NOT NULL REFERENCES TEM.Textbooks(TextbookID),
-	LostTextbookID_FK INT NOT NULL REFERENCES TEM.Textbooks(TextbookID),
-	MonetaryAddition MONEY NOT NULL,
-	ExchangeDate DATETIME NOT NULL
-	)
+GO
 
-CREATE TABLE TEM.Rentals(
-	RentalID INT IDENTITY(1, 1) PRIMARY KEY,
-	TextbookID_FK INT NOT NULL REFERENCES TEM.Textbooks(TextbookID),
-	CustomerID_FK INT NOT NULL REFERENCES TEM.Customers(CustomerID),
-	StartDate DATETIME NOT NULL,
-	Due DATETIME NOT NULL,
-	PenaltyAmount MONEY NOT NULL DEFAULT 0,
-	RentalStatus BIT NOT NULL DEFAULT 0
-	)
+	CREATE TABLE TEM.Customers(
+		CustomerID INT IDENTITY(1, 1) PRIMARY KEY,
+		CustomerFirstName VARCHAR(50) NOT NULL,
+		CustomerMiddleInitial VARCHAR(50) NOT NULL,
+		CustomerLastName VARCHAR(50) NOT NULL,
+		CustomerPhone VARCHAR(15),
+		CustomerStreetAddress VARCHAR(50),
+		CustomerCity VARCHAR(50),
+		CustomerState VARCHAR(2),
+		CustomerZip VARCHAR(5),
+		CustomerCountry VARCHAR(50)
+		)
+
+	CREATE TABLE TEM.RentalPeriods(
+		PeriodID INT IDENTITY(1, 1) PRIMARY KEY,
+		PeriodDays INT NOT NULL,
+		PeriodTitle VARCHAR(50) NOT NULL,
+		PeriodCost MONEY NOT NULL
+		)
+
+	CREATE TABLE TEM.Textbooks(
+		TextbookID INT IDENTITY(1, 1) PRIMARY KEY,
+		ISBN INT NOT NULL,
+		Title VARCHAR(50) NOT NULL,
+		TextDesc VARCHAR(100) NOT NULL,
+		BaseRentalPrice MONEY NOT NULL DEFAULT 0,
+		InventoryCount INT NOT NULL DEFAULT 0,
+		CHECK(ISBN Like '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9]' 
+			AND InventoryCount >= 0
+			AND BaseRentalPrice >= 0)
+		)
+
+GO
+
+	CREATE TABLE TEM.Rentals(
+		RentalID INT IDENTITY(1, 1) PRIMARY KEY,
+		TextbookID INT NOT NULL REFERENCES TEM.Textbooks(TextbookID),
+		CustomerID INT NOT NULL REFERENCES TEM.Customers(CustomerID),
+		StartDate DATETIME NOT NULL DEFAULT GETDATE(),
+		RentalPeriodID INT NOT NULL REFERENCES TEM.RentalPeriods(PeriodID),
+		ReturnCharges MONEY NOT NULL DEFAULT 0,
+		Status VARCHAR(20) NOT NULL DEFAULT 0,
+		CHECK(ReturnCharges >= 0)
+		)
+
+	CREATE TABLE TEM.Courses(
+		CourseID INT IDENTITY(1, 1) PRIMARY KEY,
+		CourseName VARCHAR(50) NOT NULL,
+		Instructor VARCHAR(100) NOT NULL,
+		TextBookID INT NOT NULL REFERENCES TEM.Textbooks (TextbookID),
+		CHECK(CourseName Like '[A-Z][A-Z][A-Z] [0-9][0-9][0-9]-[0-9][0-9]')
+		)
