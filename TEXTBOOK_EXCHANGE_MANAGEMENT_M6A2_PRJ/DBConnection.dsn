@@ -1,0 +1,8 @@
+[ODBC]
+DRIVER=ODBC Driver 17 for SQL Server
+TrustServerCertificate=No
+DATABASE=VR_jholder7
+WSID=CSCLAB-001
+APP=Microsoft Office
+Trusted_Connection=Yes
+SERVER=cob-sqlserver01
